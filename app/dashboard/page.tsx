@@ -40,6 +40,7 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
+    document.title = "Eventify - Dashboard";
     loadUsers();
     const interval = setInterval(loadUsers, 10000);
     return () => clearInterval(interval);

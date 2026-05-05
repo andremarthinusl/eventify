@@ -68,6 +68,7 @@ export default function ManageAccountPage() {
   };
 
   useEffect(() => {
+    document.title = "Eventify - Manage Account";
     loadUsers();
   }, []);
 
