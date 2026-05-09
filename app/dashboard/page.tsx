@@ -90,10 +90,10 @@ export default function DashboardPage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(255,255,255,0.08),transparent_40%),radial-gradient(circle_at_85%_10%,rgba(255,255,255,0.05),transparent_35%),radial-gradient(circle_at_60%_80%,rgba(255,255,255,0.06),transparent_40%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(0,0,0,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.015)_1px,transparent_1px)] [background-size:28px_28px]" />
 
-      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:flex-row sm:gap-8 sm:px-8 sm:py-10">
+      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-row gap-4 overflow-x-hidden px-3 py-5 sm:gap-8 sm:px-8 sm:py-10">
         <Sidebar active="dashboard" onLogout={handleLogout} />
 
-        <div className="flex min-h-[70vh] flex-1 flex-col gap-6 rounded-2xl border border-white/10 bg-[#191a19]/90 p-6 backdrop-blur sm:p-8">
+        <div className="flex min-h-[70vh] w-full min-w-0 flex-1 flex-col gap-6 rounded-2xl border border-white/10 bg-[#191a19]/90 p-4 backdrop-blur sm:p-8">
           <header>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40">
               Dashboard

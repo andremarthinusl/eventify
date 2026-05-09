@@ -197,10 +197,10 @@ export default function ManageAccountPage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(255,255,255,0.08),transparent_40%),radial-gradient(circle_at_85%_10%,rgba(255,255,255,0.05),transparent_35%),radial-gradient(circle_at_60%_80%,rgba(255,255,255,0.06),transparent_40%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(0,0,0,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.015)_1px,transparent_1px)] [background-size:28px_28px]" />
 
-      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:flex-row sm:gap-8 sm:px-8 sm:py-10">
+      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-row gap-4 overflow-x-hidden px-3 py-5 sm:gap-8 sm:px-8 sm:py-10">
         <Sidebar active="manage-account" onLogout={handleLogout} />
 
-        <div className="flex min-h-[70vh] flex-1 flex-col gap-6 rounded-2xl border border-white/10 bg-[#191a19]/90 p-6 backdrop-blur sm:p-8">
+        <div className="flex min-h-[70vh] w-full min-w-0 flex-1 flex-col gap-6 rounded-2xl border border-white/10 bg-[#191a19]/90 p-4 backdrop-blur sm:p-8">
           <header className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40">
@@ -265,16 +265,50 @@ export default function ManageAccountPage() {
                             <button
                               type="button"
                               onClick={() => openEditModal(user)}
-                              className="text-xs font-semibold text-white/70 hover:text-white"
+                              aria-label="Edit"
+                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-white/70 transition hover:border-white/25 hover:text-white"
                             >
-                              Edit
+                              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
+                                <path
+                                  d="M4 16.75V20h3.25L18.5 8.75l-3.25-3.25L4 16.75Z"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M13.75 5.5l3.25 3.25"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  strokeLinecap="round"
+                                />
+                              </svg>
                             </button>
                             <button
                               type="button"
                               onClick={() => handleDelete(user.id)}
-                              className="text-xs font-semibold text-rose-200 hover:text-rose-100"
+                              aria-label="Delete"
+                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-rose-400/20 text-rose-200 transition hover:border-rose-300/40 hover:text-rose-100"
                             >
-                              Hapus
+                              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
+                                <path
+                                  d="M6 7h12"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  strokeLinecap="round"
+                                />
+                                <path
+                                  d="M9 7V5h6v2"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  strokeLinecap="round"
+                                />
+                                <path
+                                  d="M8 7l.6 10.2A2 2 0 0 0 10.6 19h2.8a2 2 0 0 0 2-1.8L16 7"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
                             </button>
                           </div>
                         </td>
