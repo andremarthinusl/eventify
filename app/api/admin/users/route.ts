@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "../../../../lib/supabaseAdmin";
 
 type CreateUserPayload = {
@@ -22,8 +21,9 @@ export async function GET() {
   return NextResponse.json({ users: data ?? [] });
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => ({}))) as CreateUserPayload;
+
   const name = body.name?.trim() ?? "";
   const email = body.email?.trim() ?? "";
   const password = body.password ?? "";
