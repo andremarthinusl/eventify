@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 
 type SidebarProps = {
-  active: "dashboard" | "manage-account";
+  active: "dashboard" | "manage-account" | "events-new";
   onLogout: () => void;
 };
 
@@ -82,6 +82,18 @@ export default function Sidebar({ active, onLogout }: SidebarProps) {
           <span className="text-base">⌁</span>
           {!isCollapsed && <span className="sm:hidden">Manage Account</span>}
           <span className="hidden sm:inline">Manage Account</span>
+        </Link>
+        <Link
+          href="/events/new"
+          className={`${linkBase} ${
+            active === "events-new"
+              ? "border-white/10 font-medium text-white/85 hover:border-white/25 hover:text-white"
+              : "border-white/5 text-white/65 hover:border-white/20 hover:text-white"
+          } ${isCollapsed ? "justify-center px-2" : ""} sm:justify-start sm:px-3`}
+        >
+          <span className="text-base">✶</span>
+          {!isCollapsed && <span className="sm:hidden">Add Event</span>}
+          <span className="hidden sm:inline">Add Event</span>
         </Link>
       </nav>
 
