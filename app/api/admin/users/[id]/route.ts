@@ -9,15 +9,16 @@ type UpdateUserPayload = {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id: rawId } = await params;
   const body = (await request.json().catch(() => ({}))) as UpdateUserPayload;
 
   const name = body.name?.trim();
   const password = body.password;
   const role = body.role;
 
-  const id = Number(params.id);
+  const id = Number(rawId);
 
   if (!id || Number.isNaN(id)) {
     return NextResponse.json({ message: "ID tidak valid." }, { status: 400 });
@@ -63,9 +64,10 @@ export async function PATCH(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = Number(params.id);
+  const { id: rawId } = await params;
+  const id = Number(rawId);
 
   if (!id || Number.isNaN(id)) {
     return NextResponse.json({ message: "ID tidak valid." }, { status: 400 });
