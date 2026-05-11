@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "../../../../../lib/supabaseAdmin";
 
 type UpdateUserPayload = {
@@ -8,28 +7,32 @@ type UpdateUserPayload = {
   role?: boolean;
 };
 
-type RouteContext = {
-  params: { id: string };
-};
-
-export async function PATCH(request: Request, context: RouteContext) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const body = (await request.json().catch(() => ({}))) as UpdateUserPayload;
+
   const name = body.name?.trim();
   const password = body.password;
   const role = body.role;
-  const id = Number(context.params.id);
+
+  const id = Number(params.id);
 
   if (!id || Number.isNaN(id)) {
     return NextResponse.json({ message: "ID tidak valid." }, { status: 400 });
   }
 
   const updates: Record<string, unknown> = {};
+
   if (name) {
     updates.name = name;
   }
+
   if (typeof password === "string" && password.length > 0) {
     updates.password = password;
   }
+
   if (typeof role === "boolean") {
     updates.role = role;
   }
@@ -58,14 +61,20 @@ export async function PATCH(request: Request, context: RouteContext) {
   return NextResponse.json({ user: data });
 }
 
-export async function DELETE(_: Request, context: RouteContext) {
-  const id = Number(context.params.id);
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const id = Number(params.id);
 
   if (!id || Number.isNaN(id)) {
     return NextResponse.json({ message: "ID tidak valid." }, { status: 400 });
   }
 
-  const { error } = await supabaseAdmin.from("users").delete().eq("id", id);
+  const { error } = await supabaseAdmin
+    .from("users")
+    .delete()
+    .eq("id", id);
 
   if (error) {
     return NextResponse.json(
