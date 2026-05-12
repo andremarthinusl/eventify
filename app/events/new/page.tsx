@@ -21,9 +21,11 @@ type EventItem = {
   waktu: string;
   lokasi: string;
   kuota: number;
+  deskripsi?: string | null;
   category: string;
   price: string;
   organizer_id: number;
+  image_url?: string | null;
   created_at: string;
   users?: { name?: string } | null;
 };
@@ -50,12 +52,12 @@ export default function NewEventPage() {
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const [isSessionReady, setIsSessionReady] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<EventItem | null>(null);
   const router = useRouter();
 
-  const organizerLabel = useMemo(() => {
-    const match = users.find((user) => String(user.id) === organizerId);
-    return match?.name ?? "Pilih organizer";
-  }, [users, organizerId]);
 
   useEffect(() => {
     document.title = "Eventify - Add Event";
@@ -128,12 +130,45 @@ export default function NewEventPage() {
   const openModal = () => {
     setErrorMessage("");
     setSuccessMessage("");
+    setModalMode("create");
+    setEditingId(null);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     resetForm();
+  };
+
+  const openDeleteConfirm = (eventItem: EventItem) => {
+    setErrorMessage("");
+    setSuccessMessage("");
+    setDeleteTarget(eventItem);
+    setIsDeleteOpen(true);
+  };
+
+  const closeDeleteConfirm = () => {
+    setIsDeleteOpen(false);
+    setDeleteTarget(null);
+  };
+
+  const openEditModal = (eventItem: EventItem) => {
+    setErrorMessage("");
+    setSuccessMessage("");
+    setModalMode("edit");
+    setEditingId(eventItem.id);
+    setTitle(eventItem.title);
+    setTanggal(eventItem.tanggal);
+    setWaktu(eventItem.waktu);
+    setLokasi(eventItem.lokasi);
+    setKuota(String(eventItem.kuota));
+    setDeskripsi(eventItem.deskripsi ?? "");
+    setCategory(eventItem.category);
+    setOrganizerId(String(eventItem.organizer_id));
+    setPriceMode(eventItem.price === "Gratis" ? "gratis" : "berbayar");
+    setPriceValue(eventItem.price === "Gratis" ? "" : eventItem.price);
+    setImageFile(null);
+    setIsModalOpen(true);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -155,46 +190,102 @@ export default function NewEventPage() {
       return;
     }
 
-    if (!imageFile) {
-      setErrorMessage("Image wajib diupload.");
-      return;
-    }
-
     const finalPrice =
       priceMode === "berbayar" && priceValue.trim() ? priceValue.trim() : "Gratis";
 
-    const formData = new FormData();
-    formData.append("title", title.trim());
-    formData.append("tanggal", tanggal);
-    formData.append("waktu", waktu);
-    formData.append("lokasi", lokasi.trim());
-    formData.append("kuota", kuota);
-    formData.append("deskripsi", deskripsi.trim());
-    formData.append("category", category.trim());
-    formData.append("organizer_id", organizerId.trim());
-    formData.append("price", finalPrice);
-    formData.append("image", imageFile);
-
     setIsSubmitting(true);
-    const response = await fetch("/api/events", {
-      method: "POST",
-      body: formData,
-    });
 
-    const payload = (await response.json().catch(() => null)) as { message?: string } | null;
-    if (!response.ok) {
-      setErrorMessage(payload?.message ?? "Gagal menambah event.");
-      setIsSubmitting(false);
-      return;
+    if (modalMode === "create") {
+      if (!imageFile) {
+        setErrorMessage("Image wajib diupload.");
+        setIsSubmitting(false);
+        return;
+      }
+      const formData = new FormData();
+      formData.append("title", title.trim());
+      formData.append("tanggal", tanggal);
+      formData.append("waktu", waktu);
+      formData.append("lokasi", lokasi.trim());
+      formData.append("kuota", kuota);
+      formData.append("deskripsi", deskripsi.trim());
+      formData.append("category", category.trim());
+      formData.append("organizer_id", organizerId.trim());
+      formData.append("price", finalPrice);
+      formData.append("image", imageFile);
+
+      const response = await fetch("/api/events", {
+        method: "POST",
+        body: formData,
+      });
+
+      const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+      if (!response.ok) {
+        setErrorMessage(payload?.message ?? "Gagal menambah event.");
+        setIsSubmitting(false);
+        return;
+      }
+    } else if (editingId) {
+      const formData = new FormData();
+      formData.append("title", title.trim());
+      formData.append("tanggal", tanggal);
+      formData.append("waktu", waktu);
+      formData.append("lokasi", lokasi.trim());
+      formData.append("kuota", kuota);
+      formData.append("deskripsi", deskripsi.trim());
+      formData.append("category", category.trim());
+      formData.append("organizer_id", organizerId.trim());
+      formData.append("price", finalPrice);
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+
+      const response = await fetch(`/api/events/${editingId}`, {
+        method: "PATCH",
+        body: formData,
+      });
+
+      const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+      if (!response.ok) {
+        setErrorMessage(payload?.message ?? "Gagal memperbarui event.");
+        setIsSubmitting(false);
+        return;
+      }
     }
 
-    setSuccessMessage("Event berhasil ditambahkan.");
+    setSuccessMessage(
+      modalMode === "create" ? "Event berhasil ditambahkan." : "Event berhasil diperbarui."
+    );
     setIsSubmitting(false);
     closeModal();
 
     const refresh = await fetch("/api/events", { cache: "no-store" });
     const eventsPayload = (await refresh.json().catch(() => null)) as { events?: EventItem[] } | null;
     setEvents(eventsPayload?.events ?? []);
+  };
+
+  const handleDelete = async (id: string) => {
+    setErrorMessage("");
+    setSuccessMessage("");
+    const response = await fetch(`/api/events/${id}`, { method: "DELETE" });
+    const payload = (await response.json().catch(() => null)) as { message?: string } | null;
+
+    if (!response.ok) {
+      setErrorMessage(payload?.message ?? "Gagal menghapus event.");
+      return;
+    }
+
+    setSuccessMessage("Event berhasil dihapus.");
+    const refresh = await fetch("/api/events", { cache: "no-store" });
+    const eventsPayload = (await refresh.json().catch(() => null)) as { events?: EventItem[] } | null;
+    setEvents(eventsPayload?.events ?? []);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) {
+      return;
+    }
+    await handleDelete(deleteTarget.id);
+    closeDeleteConfirm();
   };
 
   if (!isSessionReady) {
@@ -246,12 +337,13 @@ export default function NewEventPage() {
                     <th className="px-5 py-3 font-medium">Category</th>
                     <th className="px-5 py-3 font-medium">Price</th>
                     <th className="px-5 py-3 font-medium">Organizer</th>
+                    <th className="px-5 py-3 font-medium">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
                   {events.length === 0 ? (
                     <tr>
-                      <td className="px-5 py-6 text-white/45" colSpan={8}>
+                      <td className="px-5 py-6 text-white/45" colSpan={9}>
                         Belum ada event.
                       </td>
                     </tr>
@@ -267,6 +359,58 @@ export default function NewEventPage() {
                         <td className="px-5 py-4 text-white/50">{eventItem.price}</td>
                         <td className="px-5 py-4 text-white/50">
                           {eventItem.users?.name ?? "-"}
+                        </td>
+                        <td className="px-5 py-4">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => openEditModal(eventItem)}
+                              aria-label="Edit"
+                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-white/70 transition hover:border-white/25 hover:text-white"
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
+                                <path
+                                  d="M4 16.75V20h3.25L18.5 8.75l-3.25-3.25L4 16.75Z"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  strokeLinejoin="round"
+                                />
+                                <path
+                                  d="M13.75 5.5l3.25 3.25"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  strokeLinecap="round"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => openDeleteConfirm(eventItem)}
+                              aria-label="Delete"
+                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-rose-400/20 text-rose-200 transition hover:border-rose-300/40 hover:text-rose-100"
+                            >
+                              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden="true">
+                                <path
+                                  d="M6 7h12"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  strokeLinecap="round"
+                                />
+                                <path
+                                  d="M9 7V5h6v2"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  strokeLinecap="round"
+                                />
+                                <path
+                                  d="M8 7l.6 10.2A2 2 0 0 0 10.6 19h2.8a2 2 0 0 0 2-1.8L16 7"
+                                  stroke="currentColor"
+                                  strokeWidth="1.6"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -303,7 +447,9 @@ export default function NewEventPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40">
                   Event Baru
                 </p>
-                <h2 className="mt-2 text-xl font-semibold text-white">Tambah Event</h2>
+                <h2 className="mt-2 text-xl font-semibold text-white">
+                  {modalMode === "create" ? "Tambah Event" : "Edit Event"}
+                </h2>
               </div>
               <button
                 type="button"
@@ -479,6 +625,39 @@ export default function NewEventPage() {
               <button
                 type="button"
                 onClick={() => setIsLogoutOpen(false)}
+                className="h-11 flex-1 rounded-xl border border-white/10 text-sm text-white/50 transition hover:text-white"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isDeleteOpen && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-black/60"
+            onClick={closeDeleteConfirm}
+            role="presentation"
+          />
+          <div className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-[#191a19] p-6 shadow-2xl">
+            <h3 className="text-lg font-semibold text-white">Konfirmasi Hapus</h3>
+            <p className="mt-2 text-sm text-white/55">
+              Hapus event
+              <span className="font-semibold text-white"> {deleteTarget?.title}</span>?
+            </p>
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="h-11 flex-1 rounded-xl border border-rose-400/30 text-sm text-rose-100 transition hover:border-rose-300/60 hover:text-rose-50"
+              >
+                Ya, hapus
+              </button>
+              <button
+                type="button"
+                onClick={closeDeleteConfirm}
                 className="h-11 flex-1 rounded-xl border border-white/10 text-sm text-white/50 transition hover:text-white"
               >
                 Batal

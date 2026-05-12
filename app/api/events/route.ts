@@ -79,32 +79,19 @@ export async function POST(request: Request) {
     .getPublicUrl(storagePath);
 
   const imageUrl = publicUrlData?.publicUrl ?? "";
-  const payload: EventPayload = {
-    title,
-    tanggal,
-    waktu,
-    lokasi,
-    kuota,
-    deskripsi,
-    imageUrl,
-    category,
-    price: price || "Gratis",
-    organizerId,
-  };
-
   const { error: insertError } = await supabaseAdmin
     .from("events")
     .insert({
-      title: payload.title,
-      tanggal: payload.tanggal,
-      waktu: payload.waktu,
-      lokasi: payload.lokasi,
-      kuota: payload.kuota,
-      deskripsi: payload.deskripsi,
-      image_url: payload.imageUrl,
-      category: payload.category,
-      price: payload.price,
-      organizer_id: payload.organizerId,
+      title,
+      tanggal,
+      waktu,
+      lokasi,
+      kuota,
+      deskripsi,
+      image_url: imageUrl,
+      category,
+      price: price || "Gratis",
+      organizer_id: organizerId,
     });
 
   if (insertError) {
@@ -120,7 +107,7 @@ export async function POST(request: Request) {
 export async function GET() {
   const { data, error } = await supabaseAdmin
     .from("events")
-    .select("id,title,tanggal,waktu,lokasi,kuota,category,price,organizer_id,created_at,users(name)")
+    .select("id,title,tanggal,waktu,lokasi,kuota,deskripsi,category,price,image_url,organizer_id,created_at,users(name)")
     .order("created_at", { ascending: false });
 
   if (error) {
